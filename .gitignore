@@ -1,0 +1,30 @@
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node (in case candidates add a frontend in-repo)
+node_modules/
+.next/
+dist/
+build/
+.turbo/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Mock-server persistence
+backend/mock-server/data/
