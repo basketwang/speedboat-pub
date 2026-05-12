@@ -1,0 +1,26 @@
+services:
+  mock:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: speedboat-mock:dev
+    container_name: speedboat-mock
+    ports:
+      - "3001:3001"
+    environment:
+      MOCK_LATENCY_MIN_MS: ${MOCK_LATENCY_MIN_MS:-50}
+      MOCK_LATENCY_MAX_MS: ${MOCK_LATENCY_MAX_MS:-300}
+      MOCK_PERSIST_PATH: ${MOCK_PERSIST_PATH:-}
+    volumes:
+      # Optional: uncomment to persist created keys / deployments across
+      # restarts. Set MOCK_PERSIST_PATH=/data/state.json in your .env.
+      - mock-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:3001/healthz').read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  mock-data:

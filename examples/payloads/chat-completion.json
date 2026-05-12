@@ -1,0 +1,18 @@
+{
+  "model": "parasail-llama-3.1-70b-instruct",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a concise senior engineer. Prefer bullet points. No marketing language."
+    },
+    {
+      "role": "user",
+      "content": "Explain prompt caching to a new dev. Three bullets max."
+    }
+  ],
+  "stream": true,
+  "temperature": 0.6,
+  "top_p": 1.0,
+  "max_tokens": 256,
+  "seed": 7
+}

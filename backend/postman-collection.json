@@ -1,0 +1,537 @@
+{
+  "info": {
+    "name": "Parasail API (mock)",
+    "description": "Mock backend for the Speedboat take-home. Mirrors the shape of the Parasail API. See /docs for interactive Swagger UI.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001"
+    },
+    {
+      "key": "api_key",
+      "value": "psk-mock-mockkey"
+    }
+  ],
+  "item": [
+    {
+      "name": "api-keys",
+      "item": [
+        {
+          "name": "List Api Keys",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/api-keys?include_revoked=",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "api-keys"
+              ],
+              "query": [
+                {
+                  "key": "include_revoked",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Create Api Key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/api-keys",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "api-keys"
+              ],
+              "query": null
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"string\",\n  \"scopes\": [\n    \"string\"\n  ],\n  \"spend_limit_usd\": 1.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Revoke Api Key",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/api-keys/{key_id}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "api-keys",
+                "{key_id}"
+              ],
+              "query": null
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Update Api Key",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/api-keys/{key_id}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "api-keys",
+                "{key_id}"
+              ],
+              "query": null
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"string\",\n  \"spend_limit_usd\": 1.0,\n  \"scopes\": [\n    \"string\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "chat",
+      "item": [
+        {
+          "name": "Chat Completions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/chat/completions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "chat",
+                "completions"
+              ],
+              "query": null
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"model\": \"string\",\n  \"messages\": [\n    {\n      \"role\": \"string\",\n      \"content\": \"string\"\n    }\n  ],\n  \"stream\": false,\n  \"temperature\": 1.0,\n  \"top_p\": 1.0,\n  \"max_tokens\": 1,\n  \"presence_penalty\": 1.0,\n  \"frequency_penalty\": 1.0,\n  \"stop\": [\n    \"string\"\n  ],\n  \"seed\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "deployments",
+      "item": [
+        {
+          "name": "List Deployments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/deployments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "deployments"
+              ],
+              "query": null
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Create Deployment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/deployments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "deployments"
+              ],
+              "query": null
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"string\",\n  \"model_source\": \"string\",\n  \"gpu_type\": \"string\",\n  \"replicas\": 1,\n  \"autoscaling\": {\n    \"min\": 1,\n    \"max\": 2,\n    \"target_concurrency\": 8\n  },\n  \"env\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get Deployment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/deployments/{dep_id}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "deployments",
+                "{dep_id}"
+              ],
+              "query": null
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Delete Deployment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/deployments/{dep_id}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "deployments",
+                "{dep_id}"
+              ],
+              "query": null
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Stream Deployment Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/deployments/{dep_id}/logs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "deployments",
+                "{dep_id}",
+                "logs"
+              ],
+              "query": null
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "gpu-types",
+      "item": [
+        {
+          "name": "List Gpu Types",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/gpu-types",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "gpu-types"
+              ],
+              "query": null
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "meta",
+      "item": [
+        {
+          "name": "Healthz",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/healthz",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "healthz"
+              ],
+              "query": null
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "models",
+      "item": [
+        {
+          "name": "List Models",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/models",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "models"
+              ],
+              "query": null
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "usage",
+      "item": [
+        {
+          "name": "Get Usage",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/usage?start=&end=&granularity=&api_key_id=&model=",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "usage"
+              ],
+              "query": [
+                {
+                  "key": "start",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "end",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "granularity",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "api_key_id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "model",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Create Spend Limit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/spend-limits",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "spend-limits"
+              ],
+              "query": null
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scope\": \"account\",\n  \"api_key_id\": \"string\",\n  \"monthly_limit_usd\": 1.0,\n  \"alert_thresholds_pct\": [\n    1\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

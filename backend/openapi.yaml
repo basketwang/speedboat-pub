@@ -1,0 +1,603 @@
+openapi: 3.1.0
+info:
+  title: Parasail API (mock)
+  description: Mock backend for the Speedboat take-home. Mirrors the shape of the
+    Parasail API. See /docs for interactive Swagger UI.
+  version: 0.1.0
+paths:
+  /healthz:
+    get:
+      tags:
+      - meta
+      summary: Healthz
+      operationId: healthz_healthz_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /v1/models:
+    get:
+      tags:
+      - models
+      summary: List Models
+      operationId: list_models_v1_models_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /v1/chat/completions:
+    post:
+      tags:
+      - chat
+      summary: Chat Completions
+      operationId: chat_completions_v1_chat_completions_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/api-keys:
+    get:
+      tags:
+      - api-keys
+      summary: List Api Keys
+      operationId: list_api_keys_v1_api_keys_get
+      parameters:
+      - name: include_revoked
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+          title: Include Revoked
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - api-keys
+      summary: Create Api Key
+      operationId: create_api_key_v1_api_keys_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApiKeyRequest'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/api-keys/{key_id}:
+    delete:
+      tags:
+      - api-keys
+      summary: Revoke Api Key
+      operationId: revoke_api_key_v1_api_keys__key_id__delete
+      parameters:
+      - name: key_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Key Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - api-keys
+      summary: Update Api Key
+      operationId: update_api_key_v1_api_keys__key_id__patch
+      parameters:
+      - name: key_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Key Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateApiKeyRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/usage:
+    get:
+      tags:
+      - usage
+      summary: Get Usage
+      operationId: get_usage_v1_usage_get
+      parameters:
+      - name: start
+        in: query
+        required: true
+        schema:
+          type: string
+          description: ISO-8601 start (inclusive)
+          title: Start
+        description: ISO-8601 start (inclusive)
+      - name: end
+        in: query
+        required: true
+        schema:
+          type: string
+          description: ISO-8601 end (exclusive)
+          title: End
+        description: ISO-8601 end (exclusive)
+      - name: granularity
+        in: query
+        required: false
+        schema:
+          enum:
+          - hour
+          - day
+          type: string
+          default: day
+          title: Granularity
+      - name: api_key_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter to a single key
+          title: Api Key Id
+        description: Filter to a single key
+      - name: model
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter to a single model
+          title: Model
+        description: Filter to a single model
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/spend-limits:
+    post:
+      tags:
+      - usage
+      summary: Create Spend Limit
+      operationId: create_spend_limit_v1_spend_limits_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpendLimitRequest'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/gpu-types:
+    get:
+      tags:
+      - gpu-types
+      summary: List Gpu Types
+      operationId: list_gpu_types_v1_gpu_types_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /v1/deployments:
+    get:
+      tags:
+      - deployments
+      summary: List Deployments
+      operationId: list_deployments_v1_deployments_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+    post:
+      tags:
+      - deployments
+      summary: Create Deployment
+      operationId: create_deployment_v1_deployments_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDeploymentRequest'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/deployments/{dep_id}:
+    get:
+      tags:
+      - deployments
+      summary: Get Deployment
+      operationId: get_deployment_v1_deployments__dep_id__get
+      parameters:
+      - name: dep_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Dep Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - deployments
+      summary: Delete Deployment
+      operationId: delete_deployment_v1_deployments__dep_id__delete
+      parameters:
+      - name: dep_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Dep Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/deployments/{dep_id}/logs:
+    get:
+      tags:
+      - deployments
+      summary: Stream Deployment Logs
+      operationId: stream_deployment_logs_v1_deployments__dep_id__logs_get
+      parameters:
+      - name: dep_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Dep Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    Autoscaling:
+      properties:
+        min:
+          type: integer
+          minimum: 0.0
+          title: Min
+          default: 1
+        max:
+          type: integer
+          minimum: 1.0
+          title: Max
+          default: 2
+        target_concurrency:
+          type: integer
+          minimum: 1.0
+          title: Target Concurrency
+          default: 8
+      type: object
+      title: Autoscaling
+    ChatCompletionRequest:
+      properties:
+        model:
+          type: string
+          title: Model
+        messages:
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+          type: array
+          title: Messages
+        stream:
+          type: boolean
+          title: Stream
+          default: false
+        temperature:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Temperature
+          default: 0.7
+        top_p:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Top P
+          default: 1.0
+        max_tokens:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Max Tokens
+          default: 512
+        presence_penalty:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Presence Penalty
+          default: 0.0
+        frequency_penalty:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Frequency Penalty
+          default: 0.0
+        stop:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: string
+          - type: 'null'
+          title: Stop
+        seed:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Seed
+      type: object
+      required:
+      - model
+      - messages
+      title: ChatCompletionRequest
+    ChatMessage:
+      properties:
+        role:
+          type: string
+          title: Role
+          description: system | user | assistant | tool
+        content:
+          type: string
+          title: Content
+      type: object
+      required:
+      - role
+      - content
+      title: ChatMessage
+    CreateApiKeyRequest:
+      properties:
+        name:
+          type: string
+          maxLength: 120
+          minLength: 1
+          title: Name
+        scopes:
+          items:
+            type: string
+          type: array
+          title: Scopes
+        spend_limit_usd:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Spend Limit Usd
+          description: Hard cap on total spend for this key, in USD. Null = unlimited.
+      type: object
+      required:
+      - name
+      title: CreateApiKeyRequest
+    CreateDeploymentRequest:
+      properties:
+        name:
+          type: string
+          maxLength: 63
+          minLength: 1
+          pattern: ^[a-z0-9][a-z0-9-]*$
+          title: Name
+        model_source:
+          type: string
+          title: Model Source
+          description: Hugging Face URL or repo id, e.g. 'meta-llama/Meta-Llama-3.1-8B-Instruct'.
+        gpu_type:
+          type: string
+          title: Gpu Type
+        replicas:
+          type: integer
+          maximum: 16.0
+          minimum: 1.0
+          title: Replicas
+          default: 1
+        autoscaling:
+          $ref: '#/components/schemas/Autoscaling'
+        env:
+          additionalProperties:
+            type: string
+          type: object
+          title: Env
+      type: object
+      required:
+      - name
+      - model_source
+      - gpu_type
+      title: CreateDeploymentRequest
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    SpendLimitRequest:
+      properties:
+        scope:
+          type: string
+          enum:
+          - account
+          - api_key
+          title: Scope
+          description: Apply the limit account-wide or to a specific key.
+        api_key_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Api Key Id
+          description: Required when scope='api_key'.
+        monthly_limit_usd:
+          type: number
+          exclusiveMinimum: 0.0
+          title: Monthly Limit Usd
+        alert_thresholds_pct:
+          items:
+            type: integer
+          type: array
+          title: Alert Thresholds Pct
+          description: Send a webhook/email at each of these % of the limit.
+      type: object
+      required:
+      - scope
+      - monthly_limit_usd
+      title: SpendLimitRequest
+    UpdateApiKeyRequest:
+      properties:
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        spend_limit_usd:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Spend Limit Usd
+        scopes:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Scopes
+      type: object
+      title: UpdateApiKeyRequest
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

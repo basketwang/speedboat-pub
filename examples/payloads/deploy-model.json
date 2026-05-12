@@ -1,0 +1,6 @@
+{
+    "deploymentName": "qwen35-9b",
+    "modelName": "Qwen/Qwen3.5-9B",
+    "displayName": "My Test Deployment",
+    "replicas": 1
+}
