@@ -1,136 +1,185 @@
-# Speedboat Take-Home
+# Speedboat Deployment Wizard
 
-Welcome — and thanks for spending the time on this.
+Senior Full-Stack UI/UX take-home for Parasail Speedboat, focused on
+Path 3: Model Deployment Wizard.
 
-## What Speedboat is
+The project turns the starter mock API into a local deployment workflow:
+a developer can browse existing deployments, create a new deployment from a
+Hugging Face model source, choose hardware, configure runtime settings, watch
+deployment progress, stream logs, and inspect revision history.
 
-At Parasail Speedboat is the product engineering team responsible for everything customer-facing: the APIs, agents, developer tooling, billing, authentication, API key management, and overall user experience (for both humans and bots).
+## What shipped
 
-Our job is to take the powerful capabilities built by the core inference platform: LLM inference, fine-tuning, deployments, and vertical AI workloads like text-to-video and audio. Turn them into intuitive, polished product experiences that developers actually enjoy using.
+- A Next.js + React + TypeScript frontend in [frontend/](frontend/).
+- A thin same-origin Next.js API proxy that keeps the Parasail bearer token
+  server-side and forwards correlation IDs.
+- FastAPI mock extensions for deployment CRUD, revision history, execution
+  IDs, deactivation timestamps, and resumable SSE deployment logs.
+- Client-side validation for model source, replica counts, autoscaling, and
+  environment variables.
+- Retry/backoff for retriable create-deployment failures.
+- A dev-only observability drawer with structured events, correlation IDs,
+  request/error/latency metrics, retry counts, log disconnects, and product
+  deployment metrics.
 
-We focus on moving fast at the product layer while staying lightweight and out of the way of the core inference engine underneath.
+## Run locally
 
-## Pick your track
-
-There are three tracks. Your recruiter contact will have told you which
-one to read. Each track folder has its own brief, deliverables list, and
-NOTES template.
-
-| Track | Persona | Brief |
-|---|---|---|
-| **Mid/Junior Full-Stack UI/UX** | Design-leaning IC. Shows design *thinking*, not just generated output. | [docs/tracks/mid-junior/README.md](docs/tracks/mid-junior/README.md) |
-| **Senior Full-Stack UI/UX** | Full-stack IC. Production-shape concerns: auth, multi-tenancy, observability, error handling. | [docs/tracks/senior/README.md](docs/tracks/senior/README.md) |
-| **Engineering Manager** | Deeply product-minded, with strong enough architectural judgment to make pragmatic technical decisions without over-optimizing for infrastructure complexity. They should bring lived experience shipping customer-facing products quickly, working closely with product to iterate fast and get the right features into users’ hands. | [docs/tracks/em/README.md](docs/tracks/em/README.md) |
-
-The rest of this README covers what's shared across tracks: how to run
-the mock, how to switch to the real API, ground rules, submission.
-
-## What's in the box
-
-- A FastAPI mock backend that mirrors the Parasail API shape, with
-  realistic latency, streaming, configurable error injection, and the
-  same `psk-<accesskey>-<secretkey>` auth shape the real API uses.
-- An OpenAPI 3 spec ([backend/openapi.yaml](backend/openapi.yaml)) and
-  a Postman collection
-  ([backend/postman-collection.json](backend/postman-collection.json)).
-- Example request payloads in [examples/payloads/](examples/payloads/).
-- An [API cookbook](docs/api-cookbook.md) with the common flows in
-  curl + JS, including the SSE streaming pattern.
-- Three path briefs in [docs/paths/](docs/paths/) that the Mid/Junior
-  and Senior tracks reference. Each path is labeled drop-in compatible vs
-  mock-only future-state so you know what works against production.
-- A [mock-to-real divergence map](docs/switching-mock-to-real.md).
-- A `docker compose up` for one-command spin-up.
-
-## How to run
+Start the mock server from the repo root:
 
 ```bash
 cp .env.example .env
 docker compose up
 ```
 
-The mock backend is at `http://localhost:3001`. Try it:
+In another terminal, start the frontend:
 
 ```bash
-curl http://localhost:3001/v1/models \
-  -H "Authorization: Bearer psk-mock-mockkey"
+cd frontend
+cp .env.example .env.local
+pnpm install
+pnpm dev
 ```
 
-Interactive docs (Swagger UI): `http://localhost:3001/docs` (no auth
-required).
+Open `http://localhost:3000`.
 
-If you'd rather run the mock without Docker:
+The mock backend runs at `http://localhost:3001`. Swagger UI is available at
+`http://localhost:3001/docs`.
+
+## Environment
+
+Root `.env` controls the mock and shared Parasail API defaults:
 
 ```bash
-cd backend/mock-server
+PARASAIL_BASE_URL=http://localhost:3001
+PARASAIL_API_KEY=psk-mock-mockkey
+MOCK_LATENCY_MIN_MS=50
+MOCK_LATENCY_MAX_MS=300
+```
+
+`frontend/.env.local` controls the frontend proxy:
+
+```bash
+PARASAIL_BASE_URL=http://localhost:3001
+PARASAIL_API_KEY=psk-mock-mockkey
+NEXT_PUBLIC_SPEEDBOAT_API_BASE_PATH=/api/parasail
+```
+
+Set `MOCK_PERSIST_PATH=/data/state.json` in the root `.env` to persist created
+deployments across mock restarts. The Docker Compose file already mounts the
+`mock-data` volume.
+
+## Useful commands
+
+```bash
+# Frontend typecheck
+cd frontend
+pnpm typecheck
+
+# Production build check
+pnpm build
+
+# Run the mock without Docker
+cd ../backend/mock-server
 pip install -r requirements.txt
 uvicorn main:app --reload --port 3001
 ```
 
-## Switching to the real Parasail API
+## Product flow
 
-Change two env vars in your `.env`:
+1. The landing page shows existing deployments with status, GPU type, replicas,
+   and endpoint information when available.
+2. The new deployment flow accepts a Hugging Face URL or `org/repo` model ID.
+3. GPU types are loaded from `GET /v1/gpu-types`; the UI shows hourly and
+   estimated monthly cost.
+4. Runtime configuration covers replicas, autoscaling, and environment
+   variables.
+5. Create submission posts to `POST /v1/deployments`, then opens the detail
+   view.
+6. The detail view polls `GET /v1/deployments/:id`, streams
+   `GET /v1/deployments/:id/logs`, and shows the endpoint URL once running.
+7. Revision history is available through `GET /v1/deployments/:id/revisions`.
 
-```bash
-PARASAIL_BASE_URL=https://api.parasail.io/api/v1/openai
-PARASAIL_API_KEY=psk-<accesskey>-<secretkey>
+## Architecture
+
+```text
+[Next.js React app]
+    |
+    | same-origin fetch, X-Correlation-Id
+    v
+[Next.js /api/parasail proxy]
+    |
+    | server-side bearer token, no-store proxying
+    v
+[FastAPI mock server]
+    |-- /v1/models
+    |-- /v1/gpu-types
+    |-- /v1/deployments
+    |-- /v1/deployments/:id/revisions
+    `-- /v1/deployments/:id/logs
+
+[dev observability drawer]
+    ^
+    | structured frontend events, request metrics, product metrics
 ```
 
-The same client code that works against the mock works against
-production for the inference endpoints (`/v1/models`,
-`/v1/chat/completions`). For the future-state endpoints
-(api-keys, usage, deployments) the mock is the only place they exist
-today. See [docs/switching-mock-to-real.md](docs/switching-mock-to-real.md)
-for the full divergence map.
+The production data model I would carry forward is:
 
-If we've issued you a real Parasail key it has a small spend cap, tight
-rate limits, and expires after the submission deadline.
+- **Deployment:** stable named endpoint.
+- **Revision:** immutable configuration snapshot.
+- **Execution:** one deployment run for a revision.
 
-## Ground rules (all tracks)
+The mock stores this state in memory by default, with optional file persistence.
+Production would need real auth, org-scoped tenancy, durable execution records,
+idempotency keys, auditability, and migration-safe schemas.
 
-- **Any stack.** Frontend, backend, DB, framework — your call. Pick
-  what lets you move. For context, our production work is mostly
-  Spring Boot, React, and Postgres; using those is welcome but not
-  required.
-- **Any tools.** Claude Code, Cursor, Copilot, vim, whatever. We do
-  care that you can talk through what you built and why — and where AI
-  helped vs got in the way.
-- **Don't clone our existing portal.** We've all seen it; we want
-  yours.
-- **Time is bounded by judgment, not a stopwatch.** Log your total in
-  your `NOTES.md`. As a rough guide, Mid/Junior and Senior candidates
-  should aim for a focused take-home, not a weekend project; EM
-  candidates should keep the required recommendations work to about a
-  half day. We're not measuring against the highest spender; we're
-  calibrating the rest of your work against effort.
-- **Polish over scope.** A small finished thing beats a sprawling
-  half-built thing every time.
-- **Make it easy to review.** A preview URL is useful, but not worth
-  losing hours to hosting/configuration. Clear local run instructions
-  and a working repo matter more than deployment heroics.
+## Mock server highlights
 
-## Submitting
+The mock supports:
 
-1. Push to a GitHub repo (public is fine; private is fine if you invite
-   the reviewer).
-2. Include one-command local run instructions. `docker compose up`,
-   `npm run dev`, or equivalent is fine.
-3. Preview URL strongly encouraged for Mid/Junior + Senior tracks —
-   Vercel, Render, Fly, Railway, your own VPS, your call — but not a
-   hard gate. If deployment eats time, note what happened and give us
-   the cleanest local path instead. The EM track has its own deliverables
-   list.
-4. Fill out the `NOTES.template.md` in your track folder and rename to
-   `NOTES.md`.
-5. (Optional) Record a 3–5 min Loom walking through what you built.
+- `GET /v1/models`
+- `GET /v1/gpu-types`
+- `GET /v1/deployments`
+- `POST /v1/deployments`
+- `GET /v1/deployments/:id`
+- `PATCH /v1/deployments/:id`
+- `DELETE /v1/deployments/:id`
+- `GET /v1/deployments/:id/revisions`
+- `GET /v1/deployments/:id/logs`
+- `GET /v1/api-keys`, `POST /v1/api-keys`, `PATCH /v1/api-keys/:id`,
+  `DELETE /v1/api-keys/:id`
+- `GET /v1/usage`
+- `POST /v1/spend-limits`
+- `POST /v1/chat/completions`
 
-Send the repo URL, preview URL if you have one, and any local run notes
-to your recruiter contact.
+Useful mock behavior:
 
-## What happens next
+- Artificial latency via `MOCK_LATENCY_MIN_MS` and `MOCK_LATENCY_MAX_MS`.
+- Error injection with `?_simulate=429`, `?_simulate=503`, or
+  `X-Simulate-Status`.
+- Deployment progression driven by polling:
+  `pending -> queued -> pulling_image -> loading_weights -> warming_up -> running`.
+- Resumable log streaming with sequence IDs.
 
-Async review (15–20 min on the repo, preview/local app, and your notes),
-then a 30–60 min live session. You drive — walk us through what you
-built, what you cut, what you'd do next. We'll probe tradeoffs.
+See [backend/mock-server/README.md](backend/mock-server/README.md) for mock
+extension details.
 
-Good luck. Have fun with it.
+## Review docs
+
+- [docs/tracks/senior/NOTES.md](docs/tracks/senior/NOTES.md): time spent,
+  stack, AI usage, cuts, and next production concerns.
+- [docs/tracks/senior/architecture-notes.md](docs/tracks/senior/architecture-notes.md):
+  auth, data model, state management, resilience, observability, and tradeoffs.
+- [docs/tracks/senior/implementation-plan.md](docs/tracks/senior/implementation-plan.md):
+  original implementation plan and success criteria.
+- [frontend/README.md](frontend/README.md): frontend-specific setup notes.
+
+## What I would build next
+
+- Real auth and org-scoped tenancy with permission checks on every deployment,
+  revision, and execution.
+- Persistent deployment execution history with idempotency keys, rollback, and
+  revision diffing.
+- A production observability sink using OpenTelemetry traces, structured
+  backend logs, and dashboards/alerts for deployment health.
+- More complete resilience: jittered retries, optimistic concurrency, and
+  explicit failed/stopped deployment states driven by backend jobs.
