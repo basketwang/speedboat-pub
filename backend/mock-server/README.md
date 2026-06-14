@@ -5,7 +5,8 @@ take-home. Behaviors worth knowing if you want to extend it:
 
 ## What it gives you out of the box
 
-- `GET /v1/models`
+- `GET /v1/models` — model catalog, including per-model
+  `recommended_configuration` for deployment defaults.
 - `POST /v1/chat/completions` — OpenAI-compatible, streaming via SSE when
   `stream: true`.
 - `GET /v1/api-keys`, `POST /v1/api-keys`, `PATCH /v1/api-keys/:id`,
@@ -16,7 +17,9 @@ take-home. Behaviors worth knowing if you want to extend it:
   thresholds.
 - `GET /v1/gpu-types`
 - `GET /v1/deployments`, `POST /v1/deployments`, `GET /v1/deployments/:id`,
-  `DELETE /v1/deployments/:id` — full deployment CRUD.
+  `PATCH /v1/deployments/:id`, `DELETE /v1/deployments/:id` — full
+  deployment CRUD. Patch creates a new deployment revision.
+- `GET /v1/deployments/:id/revisions` — revision history for a deployment.
 - `GET /v1/deployments/:id/logs` — SSE stream of synthetic deploy logs.
 - `GET /healthz`
 - `GET /docs` — interactive Swagger UI.

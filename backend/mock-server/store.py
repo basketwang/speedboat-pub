@@ -25,9 +25,47 @@ class Store:
     def _load(self) -> dict[str, Any]:
         if self._persist_path and Path(self._persist_path).exists():
             with open(self._persist_path) as f:
-                return json.load(f)
+                return self._migrate(json.load(f))
         with open(SEED_PATH) as f:
-            return json.load(f)
+            return self._migrate(json.load(f))
+
+    def _migrate(self, state: dict[str, Any]) -> dict[str, Any]:
+        state.setdefault("deployment_logs", {})
+        for dep in state.get("deployments", []):
+            if not dep.get("revisions"):
+                revision = {
+                    "id": f"{dep['id']}-rev-001",
+                    "deployment_run_id": f"run_{dep['id']}_001",
+                    "deployment_id": dep["id"],
+                    "version": 1,
+                    "model_source": dep["model_source"],
+                    "gpu_type": dep["gpu_type"],
+                    "replicas": dep["replicas"],
+                    "autoscaling": deepcopy(dep["autoscaling"]),
+                    "env": deepcopy(dep.get("env", {})),
+                    "status": dep["status"],
+                    "endpoint_url": dep.get("endpoint_url"),
+                    "created_at": dep["created_at"],
+                    "started_at": dep["created_at"],
+                    "finished_at": dep["updated_at"] if dep["status"] == "running" else None,
+                    "updated_at": dep["updated_at"],
+                    "activated_at": dep["updated_at"] if dep["status"] == "running" else None,
+                    "deactivated_at": None,
+                }
+                dep["active_revision_id"] = revision["id"]
+                dep["revision"] = deepcopy(revision)
+                dep["revisions"] = [revision]
+            for revision in dep.get("revisions", []):
+                revision.setdefault("deployment_run_id", f"run_{revision['id']}")
+                revision.setdefault("started_at", revision.get("created_at"))
+                revision.setdefault("finished_at", revision.get("activated_at"))
+                revision.setdefault("deactivated_at", None)
+            active_revision_id = dep.get("active_revision_id")
+            for revision in dep.get("revisions", []):
+                if revision.get("id") == active_revision_id:
+                    dep["revision"] = deepcopy(revision)
+                    break
+        return state
 
     def _persist(self) -> None:
         if not self._persist_path:
@@ -85,6 +123,13 @@ class Store:
                     return deepcopy(d)
             return None
 
+    def deployment_revisions(self, dep_id: str) -> list[dict] | None:
+        with self._lock:
+            for d in self._state["deployments"]:
+                if d["id"] == dep_id:
+                    return deepcopy(d.get("revisions", []))
+            return None
+
     def add_deployment(self, dep: dict) -> None:
         with self._lock:
             self._state["deployments"].append(dep)
@@ -98,6 +143,48 @@ class Store:
                     self._persist()
                     return deepcopy(d)
             return None
+
+    def add_deployment_revision(self, dep_id: str, revision: dict, deployment_patch: dict) -> dict | None:
+        with self._lock:
+            for d in self._state["deployments"]:
+                if d["id"] != dep_id:
+                    continue
+                for existing_revision in d.setdefault("revisions", []):
+                    if existing_revision.get("status") == "running":
+                        existing_revision["status"] = "stopped"
+                        existing_revision["endpoint_url"] = None
+                        existing_revision["updated_at"] = revision["created_at"]
+                        existing_revision["deactivated_at"] = revision["created_at"]
+                d["revisions"].append(revision)
+                d["active_revision_id"] = revision["id"]
+                d["revision"] = deepcopy(revision)
+                d.update(deployment_patch)
+                self._state.setdefault("deployment_logs", {}).pop(dep_id, None)
+                self._persist()
+                return deepcopy(d)
+            return None
+
+    def update_active_revision(self, dep_id: str, patch: dict) -> dict | None:
+        with self._lock:
+            for d in self._state["deployments"]:
+                if d["id"] != dep_id:
+                    continue
+                active_revision_id = d.get("active_revision_id")
+                for revision in d.get("revisions", []):
+                    if revision["id"] == active_revision_id:
+                        revision.update(patch)
+                        d["revision"] = deepcopy(revision)
+                        self._persist()
+                        return deepcopy(revision)
+                return None
+
+    def ensure_deployment_logs(self, dep_id: str, logs: list[dict]) -> list[dict]:
+        with self._lock:
+            deployment_logs = self._state.setdefault("deployment_logs", {})
+            if dep_id not in deployment_logs:
+                deployment_logs[dep_id] = logs
+                self._persist()
+            return deepcopy(deployment_logs[dep_id])
 
     def usage_daily(self) -> list[dict]:
         with self._lock:
